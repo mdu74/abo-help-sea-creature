@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocean Heroes: Life Below Water</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #4682B4 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+
+        .score-board {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .score {
+            color: #2E8B57;
+        }
+
+        .lives {
+            color: #FF6347;
+        }
+
+        .timer {
+            color: #4169E1;
+        }
+
+        .ocean {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                rgba(135, 206, 235, 0.8) 0%,
+                rgba(70, 130, 180, 0.9) 30%,
+                rgba(25, 25, 112, 0.95) 100%);
+        }
+
+        .sea-creature {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .sea-creature:hover {
+            transform: scale(1.2);
+        }
+
+        .sea-creature .material-icons {
+            font-size: 48px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .fish {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            animation: swim 8s linear infinite;
+        }
+
+        .fish .material-icons {
+            color: #FF6347;
+        }
+
+        .turtle {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(45deg, #228B22, #32CD32);
+            animation: swim 12s linear infinite;
+        }
+
+        .turtle .material-icons {
+            color: #006400;
+            font-size: 52px;
+        }
+
+        .dolphin {
+            width: 85px;
+            height: 85px;
+            background: linear-gradient(45deg, #4682B4, #87CEEB);
+            animation: swim 10s linear infinite;
+        }
+
+        .dolphin .material-icons {
+            color: #191970;
+        }
+
+        .pollution {
+            position: absolute;
+            cursor: pointer;
+            z-index: 40;
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .pollution:hover {
+            transform: scale(1.3);
+        }
+
+        .pollution .material-icons {
+            font-size: 42px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
+
+        .plastic-bag {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #696969, #A9A9A9);
+            animation: float 6s linear infinite;
+        }
+
+        .plastic-bag .material-icons {
+            color: #2F4F4F;
+        }
+
+        .oil-spill {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #2F4F4F, #000000);
+            animation: drift 8s linear infinite;
+        }
+
+        .oil-spill .material-icons {
+            color: #8B4513;
+        }
+
+        .trash {
+            width: 75px;
+            height: 75px;
+            background: linear-gradient(45deg, #8B4513, #D2691E);
+            animation: sink 7s linear infinite;
+        }
+
+        .trash .material-icons {
+            color: #654321;
+        }
+
+        @keyframes swim {
+            0% { left: -150px; }
+            100% { left: 100vw; }
+        }
+
+        @keyframes float {
+            0% { left: 100vw; top: 20%; }
+            100% { left: -100px; top: 40%; }
+        }
+
+        @keyframes drift {
+            0% { left: 100vw; top: 60%; }
+            100% { left: -120px; top: 80%; }
+        }
+
+        @keyframes sink {
+            0% { left: 100vw; top: 30%; }
+            100% { left: -80px; top: 90%; }
+        }
+
+        .bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: bubble-rise 4s linear infinite;
+        }
+
+        @keyframes bubble-rise {
+            0% { bottom: -50px; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { bottom: 100vh; opacity: 0; }
+        }
+
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 200;
+            max-width: 400px;
+        }
+
+        .popup h2 {
+            color: #2E8B57;
+            margin-bottom: 15px;
+        }
+
+        .popup p {
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 150;
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .particle-effect {
+            position: absolute;
+            pointer-events: none;
+            font-size: 24px;
+            font-weight: bold;
+            animation: particle-float 1s ease-out forwards;
+            z-index: 75;
+        }
+
+        @keyframes particle-float {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+
+        .endangered-warning {
+            color: #FF4500;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <div class="score-board">
+                <div class="score">🌊 Clean Ocean: <span id="score">0</span></div>
+                <div class="lives">🐠 Sea Life: <span id="lives">3</span></div>
+                <div class="timer">⏰ Time: <span id="timer">60</span>s</div>
+            </div>
+        </div>
+
+        <div class="ocean" id="ocean"></div>
+
+        <div class="instructions">
+            <strong>🌊 Save Our Ocean! 🌊</strong><br>
+            Click on pollution (🗑️ bags, 🛢️ oil, 🗑️ trash) to clean the ocean!<br>
+            Avoid clicking sea creatures (🐠🐢🐬) - they need protection!<br>
+            Learn about SDG 14: Life Below Water
+        </div>
+    </div>
+
+    <!-- Start Game Popup -->
+    <div id="start-popup" class="overlay">
+        <div class="popup">
+            <h2>🌊 Ocean Heroes: Life Below Water 🌊</h2>
+            <p>Welcome to our ocean conservation game!</p>
+            <p><strong>Mission:</strong> Help clean our oceans by removing pollution while protecting sea life.</p>
+            <p><strong>SDG 14:</strong> Life Below Water aims to conserve and sustainably use oceans, seas and marine resources.</p>
+            <p>Click pollution to clean it, but protect the sea creatures!</p>
+            <button class="btn" onclick="startGame()">Start Cleaning! 🌊</button>
+        </div>
+    </div>
+
+    <!-- Game Over Popup -->
+    <div id="gameover-popup" class="overlay hidden">
+        <div class="popup">
+            <h2 id="game-result">Game Over!</h2>
+            <p id="final-score"></p>
+            <p id="ocean-message"></p>
+            <div id="educational-content"></div>
+            <button class="btn" onclick="restartGame()">Play Again! 🌊</button>
+        </div>
+    </div>
+
+    <script>
+        let gameActive = false;
+        let score = 0;
+        let lives = 3;
+        let timeLeft = 60;
+        let gameTimer;
+        let spawnTimer;
+
+        const gameElements = {
+            ocean: document.getElementById('ocean'),
+            scoreDisplay: document.getElementById('score'),
+            livesDisplay: document.getElementById('lives'),
+            timerDisplay: document.getElementById('timer'),
+            startPopup: document.getElementById('start-popup'),
+            gameoverPopup: document.getElementById('gameover-popup')
+        };
+
+        const seaCreatures = [
+            { type: 'fish', class: 'fish', points: -10, name: 'Fish', icon: '🐠' },
+            { type: 'turtle', class: 'turtle', points: -15, name: 'Sea Turtle', icon: '🐢' },
+            { type: 'dolphin', class: 'dolphin', points: -20, name: 'Dolphin', icon: '🐬' }
+        ];
+
+        const pollutionTypes = [
+            { type: 'plastic', class: 'plastic-bag', points: 10, name: 'Plastic Bag', icon: 'shopping_bag' },
+            { type: 'oil', class: 'oil-spill', points: 15, name: 'Oil Spill', icon: 'oil_barrel' },
+            { type: 'trash', class: 'trash', points: 12, name: 'Ocean Trash', icon: 'delete' }
+        ];
+
+        function startGame() {
+            gameActive = true;
+            score = 0;
+            lives = 3;
+            timeLeft = 60;
+            
+            updateDisplay();
+            gameElements.startPopup.classList.add('hidden');
+            
+            // Start game timer
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+
+            // Start spawning elements
+            spawnTimer = setInterval(spawnElement, 1500);
+            
+            // Create background bubbles
+            createBubbles();
+        }
+
+        function spawnElement() {
+            if (!gameActive) return;
+
+            // 60% chance for pollution, 40% for sea creatures
+            const isPollution = Math.random() < 0.6;
+            const elementType = isPollution ? 
+                pollutionTypes[Math.floor(Math.random() * pollutionTypes.length)] :
+                seaCreatures[Math.floor(Math.random() * seaCreatures.length)];
+
+            createElement(elementType, isPollution);
+        }
+
+        function createElement(elementType, isPollution) {
+            const element = document.createElement('div');
+            element.className = `${isPollution ? 'pollution' : 'sea-creature'} ${elementType.class}`;
+            
+            // Add icon
+            if (isPollution) {
+                const icon = document.createElement('span');
+                icon.className = 'material-icons';
+                icon.textContent = elementType.icon;
+                element.appendChild(icon);
+            } else {
+                // Use emoji for sea creatures for better visibility
+                element.textContent = elementType.icon;
+                element.style.fontSize = '48px';
+                element.style.display = 'flex';
+                element.style.alignItems = 'center';
+                element.style.justifyContent = 'center';
+            }
+            
+            // Random vertical position
+            const topPosition = Math.random() * (window.innerHeight - 200) + 100;
+            element.style.top = topPosition + 'px';
+            
+            // Add click handler
+            element.addEventListener('click', () => handleClick(element, elementType, isPollution));
+            
+            gameElements.ocean.appendChild(element);
+            
+            // Remove element after animation
+            setTimeout(() => {
+                if (element.parentNode) {
+                    element.parentNode.removeChild(element);
+                }
+            }, isPollution ? 8000 : 12000);
+        }
+
+        function handleClick(element, elementType, isPollution) {
+            if (!gameActive) return;
+
+            element.style.pointerEvents = 'none';
+            
+            if (isPollution) {
+                // Clicked pollution - good!
+                score += elementType.points;
+                createParticleEffect(element, '+' + elementType.points, '#4CAF50');
+                showEducationalTip(elementType.name, true);
+            } else {
+                // Clicked sea creature - bad!
+                lives--;
+                score += elementType.points; // Negative points
+                createParticleEffect(element, elementType.points, '#FF6347');
+                showEducationalTip(elementType.name, false);
+                
+                if (lives <= 0) {
+                    endGame();
+                    return;
+                }
+            }
+            
+            updateDisplay();
+            
+            // Remove clicked element with animation
+            element.style.transform = 'scale(0)';
+            setTimeout(() => {
+                if (element.parentNode) {
+                    element.parentNode.removeChild(element);
+                }
+            }, 300);
+        }
+
+        function createParticleEffect(element, text, color) {
+            const particle = document.createElement('div');
+            particle.className = 'particle-effect';
+            particle.textContent = text;
+            particle.style.color = color;
+            particle.style.left = element.style.left || (element.offsetLeft + 'px');
+            particle.style.top = element.style.top || (element.offsetTop + 'px');
+            
+            gameElements.ocean.appendChild(particle);
+            
+            setTimeout(() => {
+                if (particle.parentNode) {
+                    particle.parentNode.removeChild(particle);
+                }
+            }, 1000);
+        }
+
+        function showEducationalTip(itemName, isGood) {
+            const tips = {
+                'Plastic Bag': 'Great job! Plastic bags can be mistaken for jellyfish by sea turtles.',
+                'Oil Spill': 'Excellent! Oil spills harm marine birds and mammals by coating their feathers and fur.',
+                'Ocean Trash': 'Well done! Ocean trash breaks down into microplastics that enter the food chain.',
+                'Fish': 'Oops! Fish are vital to ocean ecosystems and food webs.',
+                'Sea Turtle': 'Be careful! Sea turtles are endangered and need our protection.',
+                'Dolphin': 'Watch out! Dolphins are intelligent marine mammals that help maintain ocean balance.'
+            };
+            
+            // You could display these tips in a small notification
+            console.log(tips[itemName]);
+        }
+
+        function createBubbles() {
+            setInterval(() => {
+                if (!gameActive) return;
+                
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.style.left = Math.random() * window.innerWidth + 'px';
+                bubble.style.width = bubble.style.height = (Math.random() * 20 + 10) + 'px';
+                
+                gameElements.ocean.appendChild(bubble);
+                
+                setTimeout(() => {
+                    if (bubble.parentNode) {
+                        bubble.parentNode.removeChild(bubble);
+                    }
+                }, 4000);
+            }, 500);
+        }
+
+        function updateDisplay() {
+            gameElements.scoreDisplay.textContent = score;
+            gameElements.livesDisplay.textContent = lives;
+            gameElements.timerDisplay.textContent = timeLeft;
+            
+            // Change lives color when low
+            if (lives <= 1) {
+                gameElements.livesDisplay.parentElement.classList.add('endangered-warning');
+            } else {
+                gameElements.livesDisplay.parentElement.classList.remove('endangered-warning');
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(gameTimer);
+            clearInterval(spawnTimer);
+            
+            // Clear all elements from ocean
+            const elements = gameElements.ocean.querySelectorAll('.sea-creature, .pollution');
+            elements.forEach(el => el.remove());
+            
+            showGameOverPopup();
+        }
+
+        function showGameOverPopup() {
+            const resultTitle = document.getElementById('game-result');
+            const finalScore = document.getElementById('final-score');
+            const oceanMessage = document.getElementById('ocean-message');
+            const educationalContent = document.getElementById('educational-content');
+            
+            if (score >= 100) {
+                resultTitle.textContent = '🌊 Ocean Hero! 🌊';
+                oceanMessage.textContent = 'Amazing work! You\'ve helped create a cleaner, safer ocean for marine life.';
+            } else if (score >= 50) {
+                resultTitle.textContent = '🐠 Good Ocean Helper! 🐠';
+                oceanMessage.textContent = 'Good job! Every piece of pollution removed helps protect sea creatures.';
+            } else {
+                resultTitle.textContent = '🌊 Keep Learning! 🌊';
+                oceanMessage.textContent = 'Remember: protecting sea life is just as important as cleaning pollution!';
+            }
+            
+            finalScore.textContent = `Final Score: ${score} points`;
+            
+            educationalContent.innerHTML = `
+                <p><strong>Did you know?</strong></p>
+                <p>🌊 SDG 14 aims to conserve oceans, seas and marine resources</p>
+                <p>🐢 Over 1 million seabirds and 100,000 sea mammals die from ocean plastic yearly</p>
+                <p>🌍 Oceans produce over 50% of the world's oxygen</p>
+                <p>💧 We can help by reducing plastic use and supporting ocean conservation!</p>
+            `;
+            
+            gameElements.gameoverPopup.classList.remove('hidden');
+        }
+
+        function restartGame() {
+            gameElements.gameoverPopup.classList.add('hidden');
+            gameElements.startPopup.classList.remove('hidden');
+        }
+
+        // Initialize bubbles on page load
+        createBubbles();
+    </script>
+</body>
+</html>
